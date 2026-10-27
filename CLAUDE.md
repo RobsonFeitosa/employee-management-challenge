@@ -52,4 +52,13 @@ Monorepo npm workspaces: `apps/api` (NestJS 10 + Mongoose 8) e `apps/web` (Next.
 - `schema.ts`: `employeeFormSchema` (Zod, uma mensagem por campo, regras cruzadas no campo da direita), `toEmployeeInput` (`''` → `null`), `toEmployeeFormInput`.
 - React 18 fixado via `overrides` na raiz (sem isso o npm iça React 19 e o Next 14 fica fora da raiz, quebrando o eslint-config-next).
 
-<!-- Padrões de componentes entram aqui na etapa 5 -->
+## Web — componentes (`apps/web/src/components/employees/`)
+- `ui/` = shadcn/ui (new-york, zinc) gerado pela CLI: `npx shadcn@2.3.0 add <nome>` (versão 2.x = Tailwind 3). Não editar à mão, salvo `sonner.tsx` (sem next-themes).
+- Fluxo de salvar: `EmployeeFormDialog` (Dialog com `EmployeeForm`) → submit válido guarda o payload → `ConfirmDialog` (AlertDialog) com `EmployeeSummary` → `useSaveEmployee` → toast (sonner).
+- `EmployeeForm`: react-hook-form + `zodResolver(employeeFormSchema)`, `mode: 'onTouched'`, erros inline via `FormMessage`; mudar admissão/início revalida demissão/fim. Inputs nativos `type="date"`/`type="time"`; periodicidade com shadcn Select.
+- `EmployeeCalculations`: `useWatch` + funções de `calculations.ts` (dias só aparecem com demissão válida).
+- `EmployeeSummary`: resumo para os modais; com `previous`, destaca o que mudou (edição).
+- `ConfirmDialog`: genérico (`destructive` para exclusão); não fecha durante a requisição.
+- Dados: `src/lib/api.ts` (fetch + `ApiError`, `NEXT_PUBLIC_API_URL`) e `src/hooks/use-employees.ts` (TanStack Query, invalida `['employees']`).
+
+<!-- Listagem entra aqui na etapa 6 -->

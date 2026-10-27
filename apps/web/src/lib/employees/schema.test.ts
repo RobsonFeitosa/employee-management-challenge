@@ -55,6 +55,17 @@ describe('employeeFormSchema', () => {
     ])
   })
 
+  it('reports cross-field errors even when other fields are invalid', () => {
+    expect(
+      errorPaths({
+        ...valid,
+        name: 'Ana 1',
+        dismissalDate: '2023-12-01',
+        workEndTime: '07:00',
+      }),
+    ).toEqual(['name', 'dismissalDate', 'workEndTime'])
+  })
+
   it('rejects periodicity outside the enum', () => {
     expect(errorPaths({ ...valid, closingPeriodicity: 'Quinzenal' })).toEqual([
       'closingPeriodicity',

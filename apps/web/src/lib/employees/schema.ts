@@ -32,34 +32,46 @@ const time = (label: string) =>
     }
   })
 
-/** Valores do formulário: inputs nativos devolvem string, `''` = campo vazio. */
-export const employeeFormSchema = z
-  .object({
-    name: z
-      .string()
-      .trim()
-      .superRefine((value, ctx) => {
-        if (value === '') {
-          ctx.addIssue({ code: 'custom', message: 'O nome é obrigatório' })
-        } else if (/\d/.test(value)) {
-          ctx.addIssue({
-            code: 'custom',
-            message: 'O nome não pode conter números',
-          })
-        } else if (!NAME_PATTERN.test(value)) {
-          ctx.addIssue({
-            code: 'custom',
-            message: 'O nome deve conter apenas letras',
-          })
-        }
-      }),
-    admissionDate: calendarDate('admissão'),
-    dismissalDate: calendarDate('demissão', { optional: true }),
-    workStartTime: time('início do expediente'),
-    workEndTime: time('fim do expediente'),
-    closingPeriodicity: z.enum(CLOSING_PERIODICITIES, {
-      errorMap: () => ({ message: 'Selecione a periodicidade do fechamento' }),
+const fieldsSchema = z.object({
+  name: z
+    .string()
+    .trim()
+    .superRefine((value, ctx) => {
+      if (value === '') {
+        ctx.addIssue({ code: 'custom', message: 'O nome é obrigatório' })
+      } else if (/\d/.test(value)) {
+        ctx.addIssue({
+          code: 'custom',
+          message: 'O nome não pode conter números',
+        })
+      } else if (!NAME_PATTERN.test(value)) {
+        ctx.addIssue({
+          code: 'custom',
+          message: 'O nome deve conter apenas letras',
+        })
+      }
     }),
+  admissionDate: calendarDate('admissão'),
+  dismissalDate: calendarDate('demissão', { optional: true }),
+  workStartTime: time('início do expediente'),
+  workEndTime: time('fim do expediente'),
+  closingPeriodicity: z.enum(CLOSING_PERIODICITIES, {
+    errorMap: () => ({ message: 'Selecione a periodicidade do fechamento' }),
+  }),
+})
+
+/**
+ * Regras entre campos num schema à parte: o `superRefine` de um objeto só
+ * roda quando todos os campos passam, o que esconderia estes erros enquanto
+ * qualquer outro campo estivesse inválido. Cada regra só compara valores
+ * já bem formados.
+ */
+const crossFieldSchema = z
+  .object({
+    admissionDate: z.string(),
+    dismissalDate: z.string(),
+    workStartTime: z.string(),
+    workEndTime: z.string(),
   })
   .superRefine((values, ctx) => {
     if (
@@ -85,6 +97,9 @@ export const employeeFormSchema = z
       })
     }
   })
+
+/** Valores do formulário: inputs nativos devolvem string, `''` = campo vazio. */
+export const employeeFormSchema = z.intersection(fieldsSchema, crossFieldSchema)
 
 export type EmployeeFormInput = z.input<typeof employeeFormSchema>
 export type EmployeeFormValues = z.output<typeof employeeFormSchema>
