@@ -61,4 +61,7 @@ Monorepo npm workspaces: `apps/api` (NestJS 10 + Mongoose 8) e `apps/web` (Next.
 - `ConfirmDialog`: genérico (`destructive` para exclusão); não fecha durante a requisição.
 - Dados: `src/lib/api.ts` (fetch + `ApiError`, `NEXT_PUBLIC_API_URL`) e `src/hooks/use-employees.ts` (TanStack Query, invalida `['employees']`).
 
-<!-- Listagem entra aqui na etapa 6 -->
+- Listagem: `EmployeesPage` controla os estados (carregando → skeleton, erro → retry, vazio → `EmployeesEmptyState`, lista → `EmployeesTable`) e os modais (`FormState`: `null` fechado, `{}` cadastro, `{ employee }` edição).
+- `EmployeesTable`: ordena no cliente por admissão (`sortByAdmission`, padrão asc, cabeçalho alterna), badge Ativo/Desligado, dias trabalhados só com demissão.
+- `DeleteEmployeeDialog`: `ConfirmDialog` destrutivo com `EmployeeSummary`.
+- Teste visual manual: Playwright em scratchpad contra `npm run dev:api` + `npm run dev:web`.
