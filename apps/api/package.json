@@ -6,9 +6,10 @@
         "build": "nest build",
         "start": "node dist/main.js",
         "start:dev": "nest start --watch",
-        "test": "jest",
+        "test": "jest && jest --config test/jest-e2e.json",
         "test:e2e": "jest --config test/jest-e2e.json",
-        "lint": "eslint --fix \"src/**/*.ts\" \"test/**/*.ts\""
+        "lint": "eslint --fix \"src/**/*.ts\" \"test/**/*.ts\"",
+        "test:unit": "jest"
     },
     "dependencies": {
         "@nestjs/common": "^10.4.22",

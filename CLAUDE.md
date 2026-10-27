@@ -34,4 +34,16 @@ Monorepo npm workspaces: `apps/api` (NestJS 10 + Mongoose 8) e `apps/web` (Next.
 - JSON de saída: `id` no lugar de `_id`, datas como `YYYY-MM-DD`, `dismissalDate: null` quando ativo.
 - Testes do service usam `mongodb-memory-server` (sem depender do docker).
 
-<!-- Rotas HTTP e padrões de componentes entram aqui conforme as etapas 3 e 5 -->
+## API — rotas HTTP (`http://localhost:3333`)
+| Método | Rota | Corpo | Sucesso | Erros |
+|---|---|---|---|---|
+| GET | `/employees` | — | 200 lista ordenada por admissão | — |
+| GET | `/employees/:id` | — | 200 | 404 |
+| POST | `/employees` | `CreateEmployeeDto` | 201 | 400 (`message: string[]`) |
+| PUT | `/employees/:id` | `UpdateEmployeeDto` (completo) | 200 | 400, 404 |
+| DELETE | `/employees/:id` | — | 204 | 404 |
+
+- Campos desconhecidos no corpo → 400 (`forbidNonWhitelisted`). `setupApp` (`src/app.setup.ts`) é usado por `main.ts` e pelos e2e.
+- Testes: `npm test -w apps/api` (unitários + e2e em `test/`, ambos com MongoDB em memória).
+
+<!-- Padrões de componentes entram aqui na etapa 5 -->
