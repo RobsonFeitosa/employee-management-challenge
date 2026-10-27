@@ -46,4 +46,10 @@ Monorepo npm workspaces: `apps/api` (NestJS 10 + Mongoose 8) e `apps/web` (Next.
 - Campos desconhecidos no corpo → 400 (`forbidNonWhitelisted`). `setupApp` (`src/app.setup.ts`) é usado por `main.ts` e pelos e2e.
 - Testes: `npm test -w apps/api` (unitários + e2e em `test/`, ambos com MongoDB em memória).
 
+## Web — utilitários e validação (`apps/web/src/lib/employees/`)
+- `types.ts`: `Employee` (espelho da API), `EmployeeInput`, `CLOSING_PERIODICITIES`.
+- `calculations.ts`: `calculateWorkedDays` (dias corridos = diferença de calendário; `null` sem demissão), `calculateDailyWorkMinutes`, `formatDuration` ("8 horas e 30 minutos"), `formatDisplayDate` (`dd/MM/yyyy`). Funções puras com date-fns; datas `YYYY-MM-DD` lidas como data local (sem deslocamento de fuso).
+- `schema.ts`: `employeeFormSchema` (Zod, uma mensagem por campo, regras cruzadas no campo da direita), `toEmployeeInput` (`''` → `null`), `toEmployeeFormInput`.
+- React 18 fixado via `overrides` na raiz (sem isso o npm iça React 19 e o Next 14 fica fora da raiz, quebrando o eslint-config-next).
+
 <!-- Padrões de componentes entram aqui na etapa 5 -->
