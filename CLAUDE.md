@@ -26,4 +26,12 @@ Monorepo npm workspaces: `apps/api` (NestJS 10 + Mongoose 8) e `apps/web` (Next.
 - Fonte da verdade da API: `apps/api/src/modules/employees/employee.constants.ts` e `schemas/employee.schema.ts`.
 - Criar, editar e excluir exigem modal de confirmação (shadcn Dialog) com resumo dos dados.
 
+## API — DTOs e service
+- `CreateEmployeeDto` valida tudo; `UpdateEmployeeDto` é idêntico (edição = PUT com o registro completo).
+- Regras entre campos via `@IsNotBefore(prop, pattern)` (comparação de string em `YYYY-MM-DD` / `HH:mm`).
+- `EmployeesService`: `create`, `findAll` (sort `admissionDate`, `createdAt`), `findOne` (404 se id inválido/inexistente), `update` (load + `set` + `save` para rodar o hook do schema), `remove`.
+- Erros de validação do Mongoose viram `400`; mensagens em português.
+- JSON de saída: `id` no lugar de `_id`, datas como `YYYY-MM-DD`, `dismissalDate: null` quando ativo.
+- Testes do service usam `mongodb-memory-server` (sem depender do docker).
+
 <!-- Rotas HTTP e padrões de componentes entram aqui conforme as etapas 3 e 5 -->

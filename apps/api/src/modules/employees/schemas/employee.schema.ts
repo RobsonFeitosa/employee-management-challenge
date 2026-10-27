@@ -2,6 +2,7 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose'
 import { HydratedDocument } from 'mongoose'
 
 import {
+  formatCalendarDate,
   NAME_PATTERN,
   TIME_PATTERN,
   timeToMinutes,
@@ -16,6 +17,10 @@ import { ClosingPeriodicity } from '../enums/closing-periodicity.enum'
     transform: (_doc, ret: Record<string, unknown>) => {
       ret.id = String(ret._id)
       delete ret._id
+      ret.admissionDate = formatCalendarDate(ret.admissionDate as Date)
+      ret.dismissalDate = ret.dismissalDate
+        ? formatCalendarDate(ret.dismissalDate as Date)
+        : null
       return ret
     },
   },
