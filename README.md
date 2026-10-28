@@ -8,7 +8,7 @@ Cadastro, edição, listagem e exclusão de funcionários, com cálculo automát
 | Listagem | Validação inline |
 |---|---|
 | ![Listagem](docs/screenshots/listagem.png) | ![Validação](docs/screenshots/validacao.png) |
-| **Confirmação de edição** (campos alterados em destaque) | **Estado vazio** |
+| **Confirmação de edição** (campos alterados em destaque) | **Estado vazio** (após excluir todos) |
 | ![Confirmação de edição](docs/screenshots/confirmacao-edicao.png) | ![Estado vazio](docs/screenshots/estado-vazio.png) |
 
 ## Como levantar a aplicação (Docker — recomendado)
@@ -16,10 +16,8 @@ Cadastro, edição, listagem e exclusão de funcionários, com cálculo automát
 Pré-requisito: **Docker** com **Docker Compose v2**. Não é preciso ter Node.js nem MongoDB instalados.
 
 ```bash
-# 1. Crie o .env a partir do exemplo e defina usuário e senha do MongoDB
+# 1. Crie o .env a partir do exemplo (já vem com usuário e senha de desenvolvimento)
 cp .env.example .env
-#    MONGO_INITDB_ROOT_USERNAME=employees
-#    MONGO_INITDB_ROOT_PASSWORD=<sua-senha>   (só letras e números)
 
 # 2. Suba MongoDB, API e front
 docker compose up -d --build
@@ -33,7 +31,7 @@ Pronto:
 | API | http://localhost:3333/employees | `employees-api` |
 | MongoDB | `localhost:27017` | `employees-mongo` |
 
-Na primeira vez, o build das imagens leva alguns minutos. Os containers sobem em ordem, cada um esperando o anterior ficar saudável (healthcheck): MongoDB → API → front. O front compila a primeira página no primeiro acesso.
+Na primeira vez, o build das imagens leva alguns minutos. Os containers sobem em ordem, cada um esperando o anterior ficar saudável (healthcheck): MongoDB → API → front. Na primeira subida, a API cria a carga inicial (cinco funcionários de exemplo), então a interface já abre com dados. O front compila a primeira página no primeiro acesso.
 
 Comandos úteis:
 
@@ -50,7 +48,7 @@ Detalhes:
 - **Modo desenvolvimento:** o código de `apps/api` e `apps/web` é montado nos containers, então qualquer alteração recarrega sozinha (hot reload). Só é preciso rebuild ao mudar dependências (`package.json`).
 - **Dados:** o MongoDB grava no volume nomeado `mongo-data`, gerenciado pelo Docker (nada é criado na pasta do projeto).
 - **Dados iniciais:** ao subir, a API aplica as migrations pendentes (`apps/api/src/database/migrations/`), registradas na coleção `migrations` para rodar uma única vez. A `001-seed-employees` cadastra cinco funcionários de exemplo, só se o banco estiver vazio.
-- **Credenciais:** ficam só no `.env` (fora do git). O compose monta a `MONGODB_URI` da API a partir delas, e falha com uma mensagem clara se não estiverem definidas.
+- **Credenciais:** o `.env.example` traz usuário e senha de desenvolvimento (`employees` / `employees123`). O compose monta a `MONGODB_URI` da API a partir delas e falha com uma mensagem clara se não estiverem definidas. Para trocá-las, edite o `.env` (fora do git) e recrie o banco com `docker compose down -v`, porque o MongoDB só aplica as credenciais na criação do volume.
 - **Portas ocupadas:** troque `WEB_PORT`, `API_PORT` ou `MONGO_PORT` no `.env`. O front e o CORS da API acompanham automaticamente.
 - **Imagens:** `apps/api/Dockerfile` e `apps/web/Dockerfile` usam `node:18-bullseye-slim`. O build parte da raiz do repositório porque o monorepo (npm workspaces) tem um único `package-lock.json`.
 
@@ -63,7 +61,7 @@ nvm use
 npm install
 
 cp .env.example .env                          # credenciais do MongoDB
-cp apps/api/.env.example apps/api/.env        # MONGODB_URI com as mesmas credenciais (host localhost)
+cp apps/api/.env.example apps/api/.env        # MONGODB_URI já com as mesmas credenciais (host localhost)
 cp apps/web/.env.example apps/web/.env.local  # URL da API usada pelo front
 
 npm run db:up     # sobe só o MongoDB
@@ -85,13 +83,13 @@ npm test          # API (unitários + e2e) e Web
 
 ## Variáveis de ambiente
 
-Nenhuma credencial é versionada. Os arquivos `.env` estão no `.gitignore`, e os `.env.example` trazem apenas os nomes das variáveis.
+Os arquivos `.env` estão no `.gitignore`. Os `.env.example` trazem valores prontos para desenvolvimento local, incluindo usuário e senha do MongoDB, que servem só para o ambiente local: em qualquer outro ambiente, defina credenciais próprias.
 
 | Arquivo | Variável | Usada em | Descrição |
 |---|---|---|---|
-| `.env` | `MONGO_INITDB_ROOT_USERNAME` / `MONGO_INITDB_ROOT_PASSWORD` | Docker | Usuário e senha root do MongoDB; a API recebe a `MONGODB_URI` montada a partir delas |
+| `.env` | `MONGO_INITDB_ROOT_USERNAME` / `MONGO_INITDB_ROOT_PASSWORD` | Docker | Usuário e senha root do MongoDB (padrão `employees` / `employees123`); a API recebe a `MONGODB_URI` montada a partir delas |
 | `.env` | `MONGO_PORT` / `API_PORT` / `WEB_PORT` | Docker | Portas publicadas no host (padrão `27017`, `3333`, `3000`) |
-| `apps/api/.env` | `MONGODB_URI` | Sem Docker | Ex.: `mongodb://<usuario>:<senha>@localhost:27017/employees?authSource=admin` |
+| `apps/api/.env` | `MONGODB_URI` | Sem Docker | Padrão `mongodb://employees:employees123@localhost:27017/employees?authSource=admin` |
 | `apps/api/.env` | `PORT` / `WEB_ORIGIN` | Sem Docker | Porta da API (`3333`) e origem do front liberada no CORS (`http://localhost:3000`) |
 | `apps/web/.env.local` | `NEXT_PUBLIC_API_URL` | Sem Docker | URL da API (padrão `http://localhost:3333`) |
 
