@@ -6,6 +6,5 @@
 **/.env
 **/.env.local
 .git
-infra
 docs
 *.log

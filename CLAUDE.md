@@ -3,7 +3,7 @@
 Monorepo npm workspaces: `apps/api` (NestJS 10 + Mongoose 8) e `apps/web` (Next.js 14 App Router + Tailwind + shadcn/ui).
 
 ## Ambiente
-- Docker (padrão): `cp .env.example .env` (preencher usuário/senha do Mongo) → `docker compose up -d --build`. Containers `employees-mongo`, `employees-api` (3333), `employees-web` (3000), em modo dev com bind mount (hot reload); rebuild só ao mudar dependências. Dockerfiles em `apps/*/Dockerfile`, build com contexto na raiz (lockfile único).
+- Docker (padrão): `cp .env.example .env` (preencher usuário/senha do Mongo) → `docker compose up -d --build`. Containers `employees-mongo`, `employees-api` (3333), `employees-web` (3000), em modo dev com bind mount (hot reload); rebuild só ao mudar dependências. Dados do Mongo no volume nomeado `mongo-data` (`docker compose down -v` zera o banco). Dockerfiles em `apps/*/Dockerfile`, build com contexto na raiz (lockfile único).
 - `nest-cli.json` com `deleteOutDir: false`: o `dist` é volume no container e não pode ser removido.
 - Sem Docker: Node 18 (`source ~/.nvm/nvm.sh && nvm use` — `.nvmrc` = 18.20.8; o shell abre em Node 12). NestJS 11 / Next 15 exigem Node 20: não atualizar. `npm run db:up` + `npm run dev:api` / `npm run dev:web` (com `apps/api/.env` e `apps/web/.env.local`). Não rodar junto com os containers (mesmas portas).
 
@@ -32,6 +32,7 @@ Monorepo npm workspaces: `apps/api` (NestJS 10 + Mongoose 8) e `apps/web` (Next.
 - `EmployeesService`: `create`, `findAll` (sort `admissionDate`, `createdAt`), `findOne` (404 se id inválido/inexistente), `update` (load + `set` + `save` para rodar o hook do schema), `remove`.
 - Erros de validação do Mongoose viram `400`; mensagens em português.
 - JSON de saída: `id` no lugar de `_id`, datas como `YYYY-MM-DD`, `dismissalDate: null` quando ativo.
+- Migrations: `src/database/migrations/` (`MIGRATIONS` em ordem, `scripts/NNN-*.ts`), aplicadas por `MigrationsService.run()` no `main.ts` (não nos e2e) e registradas na coleção `migrations`. Dados iniciais entram como migration (`001-seed-employees`, só com banco vazio). Nunca renomear/remover uma já aplicada.
 - Testes do service usam `mongodb-memory-server` (sem depender do docker).
 
 ## API — rotas HTTP (`http://localhost:3333`)

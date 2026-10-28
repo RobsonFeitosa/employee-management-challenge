@@ -16,6 +16,4 @@ coverage/
 # Logs
 *.log
 
-# Database data (bind-mounted volume)
-infra/mongo/data/
 next-env.d.ts

@@ -40,13 +40,16 @@ Comandos úteis:
 ```bash
 docker compose ps                 # status e saúde dos containers
 docker compose logs -f api web    # logs (ou: npm run docker:logs)
-docker compose down               # para tudo (os dados continuam em infra/mongo/data)
+docker compose down               # para tudo (os dados continuam no volume mongo-data)
+docker compose down -v            # para tudo e apaga o banco (a carga inicial roda de novo)
 docker compose up -d --build      # sobe de novo após mudar dependências
 ```
 
 Detalhes:
 
 - **Modo desenvolvimento:** o código de `apps/api` e `apps/web` é montado nos containers, então qualquer alteração recarrega sozinha (hot reload). Só é preciso rebuild ao mudar dependências (`package.json`).
+- **Dados:** o MongoDB grava no volume nomeado `mongo-data`, gerenciado pelo Docker (nada é criado na pasta do projeto).
+- **Dados iniciais:** ao subir, a API aplica as migrations pendentes (`apps/api/src/database/migrations/`), registradas na coleção `migrations` para rodar uma única vez. A `001-seed-employees` cadastra cinco funcionários de exemplo, só se o banco estiver vazio.
 - **Credenciais:** ficam só no `.env` (fora do git). O compose monta a `MONGODB_URI` da API a partir delas, e falha com uma mensagem clara se não estiverem definidas.
 - **Portas ocupadas:** troque `WEB_PORT`, `API_PORT` ou `MONGO_PORT` no `.env`. O front e o CORS da API acompanham automaticamente.
 - **Imagens:** `apps/api/Dockerfile` e `apps/web/Dockerfile` usam `node:18-bullseye-slim`. O build parte da raiz do repositório porque o monorepo (npm workspaces) tem um único `package-lock.json`.
@@ -124,6 +127,7 @@ apps/
     dto/           # CreateEmployeeDto / UpdateEmployeeDto (class-validator)
     validators/    # @IsNotBefore (demissão x admissão, fim x início)
     employees.service.ts / employees.controller.ts
+  api/src/database/migrations/  # migrations aplicadas na subida da API (carga inicial)
   api/test/        # testes e2e das rotas
   web/src/
     lib/employees/ # cálculos (date-fns), schema Zod, tipos
