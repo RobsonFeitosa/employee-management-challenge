@@ -1,6 +1,6 @@
 import { differenceInCalendarDays, format, isValid, parseISO } from 'date-fns'
 
-export const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/
+const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/
 export const TIME_PATTERN = /^([01]\d|2[0-3]):[0-5]\d$/
 
 function plural(count: number, singular: string, pluralForm: string) {
