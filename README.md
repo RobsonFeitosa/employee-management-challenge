@@ -116,7 +116,7 @@ Todos os requisitos da especificação estão implementados e cobertos por teste
 
 | Requisito | Onde é garantido |
 |---|---|
-| Nome obrigatório e sem números | `NAME_PATTERN` no schema Mongoose, `CreateEmployeeDto` e `employeeFormSchema` (Zod) |
+| Nome obrigatório e sem números | `NAME_PATTERN` no schema Mongoose, `CreateEmployeeDto` e `employeeFormSchema` (Zod). Na interface, números são bloqueados já na digitação |
 | Data de demissão opcional e não anterior à admissão | Hook `pre('validate')` do schema, `@IsNotBefore` no DTO e regra cruzada no Zod |
 | Expediente `HH:mm`; fim não anterior ao início | `TIME_PATTERN` + mesmas três camadas acima |
 | Periodicidade restrita a Mensal/Bimestral/Trimestral/Semestral/Anual | Enum `ClosingPeriodicity` (schema e DTO) e `CLOSING_PERIODICITIES` (select do formulário e Zod) |
@@ -125,7 +125,7 @@ Todos os requisitos da especificação estão implementados e cobertos por teste
 | Modal de confirmação ao criar, editar e excluir, com resumo dos dados | `ConfirmDialog` (AlertDialog do shadcn/ui) + `EmployeeSummary`. Na edição, os campos alterados aparecem em destaque |
 | Listagem por admissão (mais antiga primeiro) e estado vazio | `EmployeesService.findAll` (`sort` por `admissionDate`), `EmployeesTable` e `EmployeesEmptyState` |
 
-As regras ficam em três camadas (formulário, DTO e schema). Assim, uma chamada direta à API, sem passar pelo front, também não grava dados inválidos.
+As regras ficam em três camadas (formulário, DTO e schema). Na interface, cada regra é validada enquanto o usuário preenche, sem esperar o envio: o nome não aceita números, os seletores de data e hora limitam a demissão à admissão e o fim ao início, e os obrigatórios são marcados com `*`. Uma chamada direta à API, sem passar pelo front, também não grava dados inválidos.
 
 ### 2. Backend: NestJS sobre Node.js, Express e MongoDB
 

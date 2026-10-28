@@ -6,6 +6,15 @@ import { CLOSING_PERIODICITIES, EmployeeInput } from './types'
 /** Mesmo critério da API: letras (inclusive acentuadas), espaços, `'`, `.` e `-`. */
 const NAME_PATTERN = /^[\p{L}\s'.-]+$/u
 
+export const NAME_DIGITS_MESSAGE = 'O nome não pode conter números'
+
+/** Qualquer dígito Unicode (0-9, ², ١...), o mesmo que a API recusa. */
+const DIGIT_PATTERN = /\p{N}/gu
+
+export function stripDigits(value: string) {
+  return value.replace(DIGIT_PATTERN, '')
+}
+
 /** Uma mensagem por campo: vazio → obrigatório; preenchido → formato. */
 const calendarDate = (label: string, { optional = false } = {}) =>
   z.string().superRefine((value, ctx) => {

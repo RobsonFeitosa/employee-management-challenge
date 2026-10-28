@@ -1,7 +1,7 @@
 'use client'
 
 import { zodResolver } from '@hookform/resolvers/zod'
-import type { ReactNode } from 'react'
+import { type ReactNode, useState } from 'react'
 import { useForm } from 'react-hook-form'
 
 import {
@@ -26,10 +26,20 @@ import {
   employeeFormSchema,
   type EmployeeFormValues,
   emptyEmployeeForm,
+  NAME_DIGITS_MESSAGE,
+  stripDigits,
 } from '@/lib/employees/schema'
 import { CLOSING_PERIODICITIES } from '@/lib/employees/types'
 
 import { EmployeeCalculations } from './employee-calculations'
+
+function RequiredMark() {
+  return (
+    <span className="text-destructive" aria-hidden>
+      *
+    </span>
+  )
+}
 
 interface EmployeeFormProps {
   id: string
@@ -48,12 +58,18 @@ export function EmployeeForm({
   const form = useForm<EmployeeFormInput, unknown, EmployeeFormValues>({
     resolver: zodResolver(employeeFormSchema),
     defaultValues,
-    mode: 'onTouched',
+    // Valida a cada alteração e ao sair do campo: os erros aparecem na hora.
+    mode: 'all',
   })
+  const [blockedDigit, setBlockedDigit] = useState(false)
+  const [admissionDate, workStartTime] = form.watch([
+    'admissionDate',
+    'workStartTime',
+  ])
 
-  // Regras cruzadas: ao mudar um lado, revalida o outro se ele já foi tocado.
+  // Regras cruzadas: ao mudar um lado, revalida o outro se ele já tem valor.
   const revalidate = (field: keyof EmployeeFormInput) => {
-    if (form.formState.touchedFields[field]) form.trigger(field)
+    if (form.getValues(field)) form.trigger(field)
   }
 
   return (
@@ -69,11 +85,29 @@ export function EmployeeForm({
           name="name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Nome</FormLabel>
+              <FormLabel>
+                Nome <RequiredMark />
+              </FormLabel>
               <FormControl>
-                <Input placeholder="Ex.: Maria da Silva" {...field} />
+                <Input
+                  placeholder="Ex.: Maria da Silva"
+                  {...field}
+                  onChange={(event) => {
+                    // Números são bloqueados na digitação/colagem e o motivo aparece na hora.
+                    const typed = event.target.value
+                    const clean = stripDigits(typed)
+                    setBlockedDigit(clean !== typed)
+                    field.onChange(clean)
+                  }}
+                />
               </FormControl>
-              <FormMessage />
+              {blockedDigit && !form.formState.errors.name ? (
+                <p className="text-[0.8rem] font-medium text-destructive">
+                  {NAME_DIGITS_MESSAGE}
+                </p>
+              ) : (
+                <FormMessage />
+              )}
             </FormItem>
           )}
         />
@@ -84,7 +118,9 @@ export function EmployeeForm({
             name="admissionDate"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Data de admissão</FormLabel>
+                <FormLabel>
+                  Data de admissão <RequiredMark />
+                </FormLabel>
                 <FormControl>
                   <Input
                     type="date"
@@ -112,7 +148,11 @@ export function EmployeeForm({
                   </span>
                 </FormLabel>
                 <FormControl>
-                  <Input type="date" {...field} />
+                  <Input
+                    type="date"
+                    min={admissionDate || undefined}
+                    {...field}
+                  />
                 </FormControl>
                 <FormDescription>Deixe vazio se estiver ativo.</FormDescription>
                 <FormMessage />
@@ -125,7 +165,9 @@ export function EmployeeForm({
             name="workStartTime"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Início do expediente</FormLabel>
+                <FormLabel>
+                  Início do expediente <RequiredMark />
+                </FormLabel>
                 <FormControl>
                   <Input
                     type="time"
@@ -146,9 +188,15 @@ export function EmployeeForm({
             name="workEndTime"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Fim do expediente</FormLabel>
+                <FormLabel>
+                  Fim do expediente <RequiredMark />
+                </FormLabel>
                 <FormControl>
-                  <Input type="time" {...field} />
+                  <Input
+                    type="time"
+                    min={workStartTime || undefined}
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -161,7 +209,9 @@ export function EmployeeForm({
           name="closingPeriodicity"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Periodicidade do fechamento</FormLabel>
+              <FormLabel>
+                Periodicidade do fechamento <RequiredMark />
+              </FormLabel>
               <Select
                 value={field.value || undefined}
                 onValueChange={field.onChange}

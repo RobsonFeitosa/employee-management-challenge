@@ -39,8 +39,10 @@ describe('employeeFormSchema', () => {
     ])
   })
 
-  it('rejects names with digits', () => {
+  it('rejects names with any kind of digit', () => {
     expect(errorPaths({ ...valid, name: 'Ana 2' })).toEqual(['name'])
+    expect(errorPaths({ ...valid, name: 'Ana²' })).toEqual(['name'])
+    expect(errorPaths({ ...valid, name: 'Ana١' })).toEqual(['name'])
   })
 
   it('rejects dismissal before admission on the dismissal field', () => {

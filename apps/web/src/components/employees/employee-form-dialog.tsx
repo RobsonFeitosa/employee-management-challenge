@@ -72,7 +72,7 @@ export function EmployeeFormDialog({
               {isEdit ? 'Editar funcionário' : 'Novo funcionário'}
             </DialogTitle>
             <DialogDescription>
-              Todos os campos são obrigatórios, exceto a data de demissão.
+              Campos com * são obrigatórios.
             </DialogDescription>
           </DialogHeader>
 
