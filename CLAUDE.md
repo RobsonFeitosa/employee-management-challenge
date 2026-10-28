@@ -3,9 +3,9 @@
 Monorepo npm workspaces: `apps/api` (NestJS 10 + Mongoose 8) e `apps/web` (Next.js 14 App Router + Tailwind + shadcn/ui).
 
 ## Ambiente
-- Node 18 (`source ~/.nvm/nvm.sh && nvm use` — `.nvmrc` = 18.20.8; o shell abre em Node 12). NestJS 11 / Next 15 exigem Node 20: não atualizar.
-- Mongo: `npm run db:up` (docker compose, credenciais só no `.env` da raiz, nunca versionadas).
-- API: `npm run dev:api` → `http://localhost:3333`. Web: `npm run dev:web` → `http://localhost:3000`.
+- Docker (padrão): `cp .env.example .env` (preencher usuário/senha do Mongo) → `docker compose up -d --build`. Containers `employees-mongo`, `employees-api` (3333), `employees-web` (3000), em modo dev com bind mount (hot reload); rebuild só ao mudar dependências. Dockerfiles em `apps/*/Dockerfile`, build com contexto na raiz (lockfile único).
+- `nest-cli.json` com `deleteOutDir: false`: o `dist` é volume no container e não pode ser removido.
+- Sem Docker: Node 18 (`source ~/.nvm/nvm.sh && nvm use` — `.nvmrc` = 18.20.8; o shell abre em Node 12). NestJS 11 / Next 15 exigem Node 20: não atualizar. `npm run db:up` + `npm run dev:api` / `npm run dev:web` (com `apps/api/.env` e `apps/web/.env.local`). Não rodar junto com os containers (mesmas portas).
 
 ## Convenções
 - Lint: `@rocketseat/eslint-config` (aspas simples, 2 espaços, sem `;`). Rode `npx eslint --fix` em vez de formatar à mão.

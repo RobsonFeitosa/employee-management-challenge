@@ -11,22 +11,59 @@ Cadastro, edição, listagem e exclusão de funcionários, com cálculo automát
 | **Confirmação de edição** (campos alterados em destaque) | **Estado vazio** |
 | ![Confirmação de edição](docs/screenshots/confirmacao-edicao.png) | ![Estado vazio](docs/screenshots/estado-vazio.png) |
 
-## Pré-requisitos
+## Como levantar a aplicação (Docker — recomendado)
 
-- Node.js 18.17+ (`.nvmrc` aponta para 18.20.8)
-- Docker + Docker Compose (para o MongoDB)
+Pré-requisito: **Docker** com **Docker Compose v2**. Não é preciso ter Node.js nem MongoDB instalados.
 
-## Instalação e execução
+```bash
+# 1. Crie o .env a partir do exemplo e defina usuário e senha do MongoDB
+cp .env.example .env
+#    MONGO_INITDB_ROOT_USERNAME=employees
+#    MONGO_INITDB_ROOT_PASSWORD=<sua-senha>   (só letras e números)
+
+# 2. Suba MongoDB, API e front
+docker compose up -d --build
+```
+
+Pronto:
+
+| Serviço | URL | Container |
+|---|---|---|
+| Interface | http://localhost:3000 | `employees-web` |
+| API | http://localhost:3333/employees | `employees-api` |
+| MongoDB | `localhost:27017` | `employees-mongo` |
+
+Na primeira vez, o build das imagens leva alguns minutos. Os containers sobem em ordem, cada um esperando o anterior ficar saudável (healthcheck): MongoDB → API → front. O front compila a primeira página no primeiro acesso.
+
+Comandos úteis:
+
+```bash
+docker compose ps                 # status e saúde dos containers
+docker compose logs -f api web    # logs (ou: npm run docker:logs)
+docker compose down               # para tudo (os dados continuam em infra/mongo/data)
+docker compose up -d --build      # sobe de novo após mudar dependências
+```
+
+Detalhes:
+
+- **Modo desenvolvimento:** o código de `apps/api` e `apps/web` é montado nos containers, então qualquer alteração recarrega sozinha (hot reload). Só é preciso rebuild ao mudar dependências (`package.json`).
+- **Credenciais:** ficam só no `.env` (fora do git). O compose monta a `MONGODB_URI` da API a partir delas, e falha com uma mensagem clara se não estiverem definidas.
+- **Portas ocupadas:** troque `WEB_PORT`, `API_PORT` ou `MONGO_PORT` no `.env`. O front e o CORS da API acompanham automaticamente.
+- **Imagens:** `apps/api/Dockerfile` e `apps/web/Dockerfile` usam `node:18-bullseye-slim`. O build parte da raiz do repositório porque o monorepo (npm workspaces) tem um único `package-lock.json`.
+
+## Execução sem Docker para a API e o front (alternativa)
+
+Requer Node.js 18.17+ (`.nvmrc` aponta para 18.20.8). O MongoDB continua no Docker.
 
 ```bash
 nvm use
 npm install
 
-cp .env.example .env                          # credenciais do MongoDB do docker compose
-cp apps/api/.env.example apps/api/.env        # MONGODB_URI com as mesmas credenciais
+cp .env.example .env                          # credenciais do MongoDB
+cp apps/api/.env.example apps/api/.env        # MONGODB_URI com as mesmas credenciais (host localhost)
 cp apps/web/.env.example apps/web/.env.local  # URL da API usada pelo front
 
-npm run db:up     # sobe o MongoDB
+npm run db:up     # sobe só o MongoDB
 npm run dev:api   # http://localhost:3333
 npm run dev:web   # http://localhost:3000
 ```
@@ -34,6 +71,7 @@ npm run dev:web   # http://localhost:3000
 ### Testes
 
 ```bash
+npm install       # uma vez, no host (Node 18)
 npm test          # API (unitários + e2e) e Web
 ```
 
@@ -46,14 +84,13 @@ npm test          # API (unitários + e2e) e Web
 
 Nenhuma credencial é versionada. Os arquivos `.env` estão no `.gitignore`, e os `.env.example` trazem apenas os nomes das variáveis.
 
-| Arquivo | Variável | Descrição |
-|---|---|---|
-| `.env` | `MONGO_INITDB_ROOT_USERNAME` / `MONGO_INITDB_ROOT_PASSWORD` | Usuário e senha root criados pelo container do MongoDB |
-| `.env` | `MONGO_PORT` | Porta exposta no host (padrão `27017`) |
-| `apps/api/.env` | `MONGODB_URI` | Ex.: `mongodb://<usuario>:<senha>@localhost:27017/employees?authSource=admin` |
-| `apps/api/.env` | `PORT` | Porta da API (padrão `3333`) |
-| `apps/api/.env` | `WEB_ORIGIN` | Origem do front liberada no CORS (padrão `http://localhost:3000`) |
-| `apps/web/.env.local` | `NEXT_PUBLIC_API_URL` | URL da API (padrão `http://localhost:3333`) |
+| Arquivo | Variável | Usada em | Descrição |
+|---|---|---|---|
+| `.env` | `MONGO_INITDB_ROOT_USERNAME` / `MONGO_INITDB_ROOT_PASSWORD` | Docker | Usuário e senha root do MongoDB; a API recebe a `MONGODB_URI` montada a partir delas |
+| `.env` | `MONGO_PORT` / `API_PORT` / `WEB_PORT` | Docker | Portas publicadas no host (padrão `27017`, `3333`, `3000`) |
+| `apps/api/.env` | `MONGODB_URI` | Sem Docker | Ex.: `mongodb://<usuario>:<senha>@localhost:27017/employees?authSource=admin` |
+| `apps/api/.env` | `PORT` / `WEB_ORIGIN` | Sem Docker | Porta da API (`3333`) e origem do front liberada no CORS (`http://localhost:3000`) |
+| `apps/web/.env.local` | `NEXT_PUBLIC_API_URL` | Sem Docker | URL da API (padrão `http://localhost:3333`) |
 
 ## API
 
